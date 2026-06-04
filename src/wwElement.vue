@@ -110,6 +110,7 @@ export default {
         display: block;
         aspect-ratio: var(--wwi-ar, unset);
         object-fit: var(--wwi-of, fill);
+        object-position: var(--wwi-op, 50% 50%);
         filter: var(--wwi-f, none);
         image-rendering: -webkit-optimize-contrast;
     }

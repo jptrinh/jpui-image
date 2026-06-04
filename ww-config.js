@@ -11,6 +11,10 @@ export default {
                 value: content.objectFit,
             },
             {
+                property: '--wwi-op',
+                value: content.objectPosition,
+            },
+            {
                 property: '--wwi-f',
                 value: content.filter,
             },
@@ -61,6 +65,36 @@ export default {
             states: true,
             classes: true,
             defaultValue: null,
+        },
+        objectPosition: {
+            label: { en: 'Position' },
+            type: 'TextSelect',
+            options: {
+                options: [
+                    { value: null, default: true, label: { en: 'Default' } },
+                    { value: 'center', label: { en: 'Center' } },
+                    { value: 'top', label: { en: 'Top' } },
+                    { value: 'bottom', label: { en: 'Bottom' } },
+                    { value: 'left', label: { en: 'Left' } },
+                    { value: 'right', label: { en: 'Right' } },
+                    { value: 'top left', label: { en: 'Top Left' } },
+                    { value: 'top right', label: { en: 'Top Right' } },
+                    { value: 'bottom left', label: { en: 'Bottom Left' } },
+                    { value: 'bottom right', label: { en: 'Bottom Right' } },
+                ],
+            },
+            bindable: true,
+            responsive: true,
+            states: true,
+            classes: true,
+            defaultValue: null,
+            /* wwEditor:start */
+            bindingValidation: {
+                type: 'string',
+                tooltip:
+                    'A CSS object-position value: `"center" | "top" | "bottom left"` \n\n <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/object-position" target="_blank">[documentation]</a>',
+            },
+            /* wwEditor:end */
         },
         overlay: {
             type: 'Color',
