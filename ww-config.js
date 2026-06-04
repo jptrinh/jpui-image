@@ -126,5 +126,116 @@ export default {
             },
             defaultValue: 'lazy',
         },
+        fetchpriority: {
+            section: 'settings',
+            label: { en: 'Fetch Priority' },
+            type: 'TextSelect',
+            options: {
+                options: [
+                    { value: 'auto', label: { en: 'Auto' }, default: true },
+                    { value: 'high', label: { en: 'High' } },
+                    { value: 'low', label: { en: 'Low' } },
+                ],
+            },
+            defaultValue: 'auto',
+            bindable: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                type: 'string',
+                tooltip: 'Hint for the browser fetch priority: `"auto" | "high" | "low"`',
+            },
+            /* wwEditor:end */
+        },
+        width: {
+            section: 'settings',
+            label: { en: 'Intrinsic Width' },
+            type: 'Number',
+            options: { min: 0, step: 1 },
+            bindable: true,
+            defaultValue: null,
+            /* wwEditor:start */
+            bindingValidation: {
+                type: 'number',
+                tooltip:
+                    'Intrinsic width of the image in pixels — used by the browser to reserve layout space before the image loads.',
+            },
+            /* wwEditor:end */
+        },
+        height: {
+            section: 'settings',
+            label: { en: 'Intrinsic Height' },
+            type: 'Number',
+            options: { min: 0, step: 1 },
+            bindable: true,
+            defaultValue: null,
+            /* wwEditor:start */
+            bindingValidation: {
+                type: 'number',
+                tooltip:
+                    'Intrinsic height of the image in pixels — used by the browser to reserve layout space before the image loads.',
+            },
+            /* wwEditor:end */
+        },
+        srcset: {
+            section: 'settings',
+            label: { en: 'Srcset' },
+            type: 'Array',
+            bindable: true,
+            defaultValue: [],
+            options: {
+                expandable: true,
+                getItemLabel(item) {
+                    return item?.descriptor || item?.url || 'Candidate';
+                },
+                item: {
+                    type: 'Object',
+                    defaultValue: { url: '', descriptor: '' },
+                    options: {
+                        item: {
+                            url: { label: { en: 'URL' }, type: 'Text' },
+                            descriptor: { label: { en: 'Descriptor' }, type: 'Text' },
+                        },
+                    },
+                },
+            },
+            /* wwEditor:start */
+            bindingValidation: {
+                type: 'array',
+                tooltip:
+                    'Array of `{ url, descriptor }` objects. `descriptor` is a width (`"480w"`) or pixel-density (`"2x"`) value.',
+            },
+            /* wwEditor:end */
+        },
+        sizes: {
+            section: 'settings',
+            label: { en: 'Sizes' },
+            type: 'Array',
+            bindable: true,
+            defaultValue: [],
+            hidden: content => !content?.srcset?.length,
+            options: {
+                expandable: true,
+                getItemLabel(item) {
+                    if (item?.media && item?.size) return `${item.media} → ${item.size}`;
+                    return item?.size || 'Default';
+                },
+                item: {
+                    type: 'Object',
+                    defaultValue: { media: '', size: '' },
+                    options: {
+                        item: {
+                            media: { label: { en: 'Media condition' }, type: 'Text' },
+                            size: { label: { en: 'Size' }, type: 'Text' },
+                        },
+                    },
+                },
+            },
+            /* wwEditor:start */
+            bindingValidation: {
+                type: 'array',
+                tooltip: 'Array of `{ media, size }` objects. Leave `media` empty for the default/fallback size.',
+            },
+            /* wwEditor:end */
+        },
     },
 };

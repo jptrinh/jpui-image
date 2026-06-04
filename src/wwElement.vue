@@ -7,7 +7,7 @@
         :class="{ '-link': hasLink && !isEditing }"
     >
         <div class="ww-image-basic-overlay"></div>
-        <img :src="src" :alt="alt" v-bind="{ loading: content.loading || 'lazy' }" />
+        <img :src="src" :alt="alt" v-bind="imgAttributes" />
     </component>
 </template>
 
@@ -54,6 +54,29 @@ export default {
         /* ALT */
         alt() {
             return wwLib.wwLang.getText(this.content.alt);
+        },
+        imgAttributes() {
+            const srcsetItems = Array.isArray(this.content?.srcset) ? this.content.srcset : [];
+            const sizesItems = Array.isArray(this.content?.sizes) ? this.content.sizes : [];
+
+            const srcsetStr = srcsetItems
+                .filter(i => i?.url)
+                .map(i => (i.descriptor ? `${i.url} ${i.descriptor}` : i.url))
+                .join(', ');
+
+            const sizesStr = sizesItems
+                .filter(i => i?.size)
+                .map(i => (i.media ? `${i.media} ${i.size}` : i.size))
+                .join(', ');
+
+            return {
+                loading: this.content?.loading || 'lazy',
+                ...(this.content?.fetchpriority ? { fetchpriority: this.content.fetchpriority } : {}),
+                ...(this.content?.width != null ? { width: this.content.width } : {}),
+                ...(this.content?.height != null ? { height: this.content.height } : {}),
+                ...(srcsetStr ? { srcset: srcsetStr } : {}),
+                ...(sizesStr ? { sizes: sizesStr } : {}),
+            };
         },
     },
 };
