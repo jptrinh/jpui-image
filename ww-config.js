@@ -159,6 +159,13 @@ export default {
                 ],
             },
             defaultValue: 'lazy',
+            bindable: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                type: 'string',
+                tooltip: 'Valid values: lazy | eager',
+            },
+            /* wwEditor:end */
         },
         fetchpriority: {
             section: 'settings',
