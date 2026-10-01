@@ -8,6 +8,7 @@
         :style="cropRootVars"
     >
         <div class="ww-image-basic-overlay"></div>
+        <div v-if="isCropped" class="ww-image-basic-crop-sizer" aria-hidden="true"></div>
         <img :src="src" :alt="alt" v-bind="imgAttributes" :style="cropImageStyle" @load="onImageLoad" />
     </component>
 </template>
@@ -104,7 +105,7 @@ export default {
                 zoom: this.cropZoom,
             });
         },
-        // Gives the element the crop's shape when its height is not set (a set height wins: lowest specificity)
+        // The crop's shape, for the sizer when the element has no aspect ratio of its own
         cropRootVars() {
             return this.isCropped && this.cropRatio ? { '--wwi-crop-ar': String(this.cropRatio) } : null;
         },
@@ -234,8 +235,20 @@ export default {
     }
 }
 
+// Crop mode: the image is taken out of the flow, so an in-flow sizer gives the element the size the image used to give
+// it (same rules as the img: full size, the style's aspect ratio, else the crop's shape)
+.ww-image-basic-crop-sizer {
+    display: block;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: var(--wwi-ar, var(--wwi-crop-ar, auto));
+    pointer-events: none;
+}
+
 // Crop mode: the image is placed in px around the crop box (exact ratio), the element clips the rest
 .ww-image-basic.-crop img {
+    top: 0;
+    left: 0;
     position: absolute;
     max-width: none;
     aspect-ratio: auto;
@@ -250,11 +263,4 @@ export default {
     }
 }
 /* wwEditor:end */
-</style>
-
-<style lang="scss">
-// Not scoped, zero specificity: the crop's shape applies only when the element has no height of its own
-:where(.ww-image-basic.-crop) {
-    aspect-ratio: var(--wwi-crop-ar, auto);
-}
 </style>

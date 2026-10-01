@@ -130,7 +130,7 @@
         "Set objectFit to cover by default to prevent stretched images",
         "Alt text should always be provided for accessibility",
         "Crop mode needs the original's size (width / height) when the URL is a resized version, otherwise the zoom cap is computed on the small image.",
-        "Crop mode: an element without a height of its own takes the crop's shape (aspect-ratio at zero specificity); with a height, the crop is fitted inside it (contain) or covers it (objectFit = cover)."
+        "Crop mode: an element without a height of its own is sized like the plain image (an in-flow sizer: the style's aspect ratio, else the crop's shape); with a height, the crop is fitted inside it (contain) or covers it (objectFit = cover)."
     ],
     "examples": []
 }
