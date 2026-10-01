@@ -61,10 +61,18 @@ export default {
                     { value: 'contain', label: { en: 'Contain' } },
                 ],
             },
+            bindable: true,
             responsive: true,
             states: true,
             classes: true,
             defaultValue: null,
+            /* wwEditor:start */
+            bindingValidation: {
+                type: 'string',
+                tooltip:
+                    'A CSS object-fit value: `"cover" | "contain"`, or empty for fill. In crop mode: `"cover"` makes the crop cover the element, anything else fits it inside.',
+            },
+            /* wwEditor:end */
         },
         objectPosition: {
             label: { en: 'Position' },
