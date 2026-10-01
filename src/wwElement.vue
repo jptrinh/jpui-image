@@ -4,14 +4,17 @@
         v-bind="properties"
         class="ww-image-basic"
         ww-responsive="ww-image-basic"
-        :class="{ '-link': hasLink && !isEditing }"
+        :class="{ '-link': hasLink && !isEditing, '-crop': isCropped }"
+        :style="cropRootVars"
     >
         <div class="ww-image-basic-overlay"></div>
-        <img :src="src" :alt="alt" v-bind="imgAttributes" />
+        <img :src="src" :alt="alt" v-bind="imgAttributes" :style="cropImageStyle" @load="onImageLoad" />
     </component>
 </template>
 
 <script>
+import { clampZoom, cropBox, fitBox, imageRectFor, maxZoomFor, parseRatio, toFraction } from './crop.js';
+
 export default {
     props: {
         content: { type: Object, required: true },
@@ -28,6 +31,13 @@ export default {
             hasLink,
             linkTag,
             properties,
+        };
+    },
+    data() {
+        return {
+            // Crop mode: the element's size (measured) and the image's own size (read on load when not given)
+            measured: null,
+            naturalSize: null,
         };
     },
     computed: {
@@ -55,6 +65,71 @@ export default {
         alt() {
             return wwLib.wwLang.getText(this.content.alt);
         },
+        /* CROP MODE */
+        // Show only a crop box of the image (ratio + focus point + zoom), fitted in the element
+        isCropped() {
+            return !!this.content?.crop && !!this.src;
+        },
+        // Size of the original: the intrinsic width / height when given, else the loaded image's
+        imageSize() {
+            const width = Number(this.content?.width);
+            const height = Number(this.content?.height);
+            if (width > 0 && height > 0) return { width, height };
+            return this.naturalSize;
+        },
+        imageRatio() {
+            return this.imageSize ? this.imageSize.width / this.imageSize.height : null;
+        },
+        // Crop ratio; empty = the image's own ratio (the whole image, zoom still applies)
+        cropRatio() {
+            return parseRatio(this.content?.cropRatio) ?? this.imageRatio;
+        },
+        cropZoom() {
+            const max = maxZoomFor({
+                imageWidth: this.imageSize?.width,
+                imageHeight: this.imageSize?.height,
+                ratio: this.cropRatio,
+                minWidth: Number(this.content?.cropMinOutputWidth) || 0,
+                minHeight: Number(this.content?.cropMinOutputHeight) || 0,
+            });
+            return clampZoom(this.content?.cropZoom, max);
+        },
+        cropRect() {
+            if (!this.imageRatio || !this.cropRatio) return null;
+            return cropBox({
+                imageRatio: this.imageRatio,
+                ratio: this.cropRatio,
+                focusX: toFraction(this.content?.cropFocusX),
+                focusY: toFraction(this.content?.cropFocusY),
+                zoom: this.cropZoom,
+            });
+        },
+        // Gives the element the crop's shape when its height is not set (a set height wins: lowest specificity)
+        cropRootVars() {
+            return this.isCropped && this.cropRatio ? { '--wwi-crop-ar': String(this.cropRatio) } : null;
+        },
+        cropImageStyle() {
+            if (!this.isCropped) return null;
+            const element = this.measured;
+            // Size unknown yet (image not loaded, element not measured): keep it invisible rather than distorted
+            if (!this.cropRect || !element?.width || !element?.height) return { visibility: 'hidden' };
+            const box = fitBox(element, this.cropRatio, this.content?.objectFit === 'cover' ? 'cover' : 'contain');
+            const rect = imageRectFor(box, this.cropRect);
+            // Only the crop box shows: the rest of the image is clipped (the element only clips at its own edges)
+            const inset = [
+                box.top - rect.top,
+                rect.left + rect.width - (box.left + box.width),
+                rect.top + rect.height - (box.top + box.height),
+                box.left - rect.left,
+            ];
+            return {
+                left: `${rect.left}px`,
+                top: `${rect.top}px`,
+                width: `${rect.width}px`,
+                height: `${rect.height}px`,
+                clipPath: `inset(${inset.map(v => `${Math.max(0, v)}px`).join(' ')})`,
+            };
+        },
         imgAttributes() {
             const srcsetItems = Array.isArray(this.content?.srcset) ? this.content.srcset : [];
             const sizesItems = Array.isArray(this.content?.sizes) ? this.content.sizes : [];
@@ -77,6 +152,49 @@ export default {
                 ...(srcsetStr ? { srcset: srcsetStr } : {}),
                 ...(sizesStr ? { sizes: sizesStr } : {}),
             };
+        },
+    },
+    watch: {
+        src() {
+            this.naturalSize = null;
+        },
+        // Measure the element only in crop mode (a grid can hold hundreds of images)
+        isCropped: {
+            handler(value) {
+                if (value) this.$nextTick(this.startMeasuring);
+                else this.stopMeasuring();
+            },
+            immediate: true,
+        },
+    },
+    beforeUnmount() {
+        this.stopMeasuring();
+    },
+    methods: {
+        onImageLoad(event) {
+            const img = event?.target;
+            if (img?.naturalWidth && img?.naturalHeight) {
+                this.naturalSize = { width: img.naturalWidth, height: img.naturalHeight };
+            }
+        },
+        startMeasuring() {
+            const element = this.$el;
+            if (this.resizeObserver || typeof element?.getBoundingClientRect !== 'function') return;
+            const measure = () => {
+                const rect = element.getBoundingClientRect();
+                this.measured = { width: rect.width, height: rect.height };
+            };
+            measure();
+            const win = wwLib.getFrontWindow();
+            if (typeof win?.ResizeObserver === 'function') {
+                this.resizeObserver = new win.ResizeObserver(measure);
+                this.resizeObserver.observe(element);
+            }
+        },
+        stopMeasuring() {
+            this.resizeObserver?.disconnect();
+            this.resizeObserver = null;
+            this.measured = null;
         },
     },
 };
@@ -116,6 +234,14 @@ export default {
     }
 }
 
+// Crop mode: the image is placed in px around the crop box (exact ratio), the element clips the rest
+.ww-image-basic.-crop img {
+    position: absolute;
+    max-width: none;
+    aspect-ratio: auto;
+    object-fit: fill;
+}
+
 /* wwEditor:start */
 .ww-image-basic {
     & img {
@@ -124,4 +250,11 @@ export default {
     }
 }
 /* wwEditor:end */
+</style>
+
+<style lang="scss">
+// Not scoped, zero specificity: the crop's shape applies only when the element has no height of its own
+:where(.ww-image-basic.-crop) {
+    aspect-ratio: var(--wwi-crop-ar, auto);
+}
 </style>

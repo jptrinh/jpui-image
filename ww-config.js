@@ -225,6 +225,95 @@ export default {
             },
             /* wwEditor:end */
         },
+        crop: {
+            section: 'settings',
+            label: { en: 'Crop to a focus point' },
+            type: 'OnOff',
+            bindable: true,
+            defaultValue: false,
+            /* wwEditor:start */
+            bindingValidation: { type: 'boolean', tooltip: 'true to show only a crop box of the image' },
+            propertyHelp: {
+                tooltip:
+                    'Shows only a crop box of the image: the largest box of the crop ratio, divided by the zoom, as centred on the focus point as the image allows (the rule of imgproxy fp gravity). Fit: cover fills the element with the crop, anything else fits it inside. Needs the image size (Intrinsic width / height, else read once loaded).',
+            },
+            /* wwEditor:end */
+        },
+        cropRatio: {
+            section: 'settings',
+            label: { en: 'Crop ratio' },
+            type: 'Text',
+            bindable: true,
+            defaultValue: '',
+            hidden: content => !content?.crop,
+            /* wwEditor:start */
+            bindingValidation: {
+                type: 'string',
+                tooltip: 'Width:height of the crop: `"4:5"`, `"16:9"`, or a number like `0.8`. Empty = the image\'s own ratio.',
+            },
+            /* wwEditor:end */
+        },
+        cropFocusX: {
+            section: 'settings',
+            label: { en: 'Focus X' },
+            type: 'Number',
+            options: { min: 0, max: 1, step: 0.01 },
+            bindable: true,
+            defaultValue: null,
+            hidden: content => !content?.crop,
+            /* wwEditor:start */
+            bindingValidation: { type: 'number', tooltip: 'Horizontal centre of the crop, 0 (left) to 1 (right). Empty = 0.5.' },
+            /* wwEditor:end */
+        },
+        cropFocusY: {
+            section: 'settings',
+            label: { en: 'Focus Y' },
+            type: 'Number',
+            options: { min: 0, max: 1, step: 0.01 },
+            bindable: true,
+            defaultValue: null,
+            hidden: content => !content?.crop,
+            /* wwEditor:start */
+            bindingValidation: { type: 'number', tooltip: 'Vertical centre of the crop, 0 (top) to 1 (bottom). Empty = 0.5.' },
+            /* wwEditor:end */
+        },
+        cropZoom: {
+            section: 'settings',
+            label: { en: 'Zoom' },
+            type: 'Number',
+            options: { min: 1, step: 0.05, noRange: true },
+            bindable: true,
+            defaultValue: null,
+            hidden: content => !content?.crop,
+            /* wwEditor:start */
+            bindingValidation: { type: 'number', tooltip: '1 or more: the crop box is the largest box of the ratio divided by this. Empty = 1.' },
+            /* wwEditor:end */
+        },
+        cropMinOutputWidth: {
+            section: 'settings',
+            label: { en: 'Min output width (px)' },
+            type: 'Number',
+            options: { min: 0, step: 10, noRange: true },
+            bindable: true,
+            defaultValue: 0,
+            hidden: content => !content?.crop,
+            /* wwEditor:start */
+            bindingValidation: { type: 'number', tooltip: 'Caps the zoom so the crop keeps at least this many source pixels of width. 0 = not checked.' },
+            propertyHelp: { tooltip: 'Use the same limit as the code that exports the crop, so the preview never zooms further than the file.' },
+            /* wwEditor:end */
+        },
+        cropMinOutputHeight: {
+            section: 'settings',
+            label: { en: 'Min output height (px)' },
+            type: 'Number',
+            options: { min: 0, step: 10, noRange: true },
+            bindable: true,
+            defaultValue: 0,
+            hidden: content => !content?.crop,
+            /* wwEditor:start */
+            bindingValidation: { type: 'number', tooltip: 'Same for the height. 0 = not checked.' },
+            /* wwEditor:end */
+        },
         srcset: {
             section: 'settings',
             label: { en: 'Srcset' },

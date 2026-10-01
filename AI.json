@@ -6,7 +6,10 @@
             "image",
             "picture",
             "photo",
-            "img"
+            "img",
+            "crop",
+            "focus point",
+            "zoom"
         ],
         "features": [
             "Object-fit modes (fill, cover, contain)",
@@ -14,7 +17,9 @@
             "CSS filter effects",
             "Lazy and eager loading",
             "Multi-language alt text",
-            "Responsive styling"
+            "Responsive styling",
+            "Bindable object-fit",
+            "Optional crop mode: shows only a crop box of the image (ratio + focus point + zoom), fitted in (or covering) the element, without a new image URL"
         ]
     },
     "properties": [
@@ -26,7 +31,7 @@
         },
         {
             "name": "objectFit",
-            "description": "How the image should fit its container. Use cover by default to prevent stretching.",
+            "description": "How the image should fit its container (bindable). Use cover by default to prevent stretching. In crop mode: cover makes the crop cover the element, anything else fits it inside.",
             "type": "string",
             "options": [
                 "cover",
@@ -58,6 +63,60 @@
                 "eager"
             ],
             "defaultValue": "lazy"
+        },
+        {
+            "name": "width",
+            "description": "Intrinsic width of the image in px (layout hint). In crop mode, the original's width: used for the image ratio and the zoom cap (else read from the loaded image).",
+            "type": "number",
+            "defaultValue": null
+        },
+        {
+            "name": "height",
+            "description": "Intrinsic height of the image in px. In crop mode, the original's height.",
+            "type": "number",
+            "defaultValue": null
+        },
+        {
+            "name": "crop",
+            "description": "Crop mode: show only a crop box of the image — the largest box of cropRatio, divided by cropZoom, as centred on (cropFocusX, cropFocusY) as the image allows (imgproxy fp gravity rule). No new image URL: the image is placed and clipped in CSS.",
+            "type": "boolean",
+            "defaultValue": false
+        },
+        {
+            "name": "cropRatio",
+            "description": "crop on: width:height of the crop, \"4:5\" or a number. Empty = the image's own ratio.",
+            "type": "string",
+            "defaultValue": ""
+        },
+        {
+            "name": "cropFocusX",
+            "description": "crop on: horizontal centre of the crop, 0–1. Empty = 0.5.",
+            "type": "number",
+            "defaultValue": null
+        },
+        {
+            "name": "cropFocusY",
+            "description": "crop on: vertical centre of the crop, 0–1. Empty = 0.5.",
+            "type": "number",
+            "defaultValue": null
+        },
+        {
+            "name": "cropZoom",
+            "description": "crop on: zoom, 1 or more (the crop box is the largest box of the ratio divided by it). Capped by the minimum output size and a hard cap of 8.",
+            "type": "number",
+            "defaultValue": null
+        },
+        {
+            "name": "cropMinOutputWidth",
+            "description": "crop on: caps the zoom so the crop keeps at least this many source pixels of width (needs width / height = the original's size). 0 = not checked.",
+            "type": "number",
+            "defaultValue": 0
+        },
+        {
+            "name": "cropMinOutputHeight",
+            "description": "crop on: same for the height. 0 = not checked.",
+            "type": "number",
+            "defaultValue": 0
         }
     ],
     "states": [],
@@ -69,7 +128,9 @@
         "Use valid Unsplash URLs for image sources when needed",
         "Optimize image dimensions to 2000x2000px or smaller",
         "Set objectFit to cover by default to prevent stretched images",
-        "Alt text should always be provided for accessibility"
+        "Alt text should always be provided for accessibility",
+        "Crop mode needs the original's size (width / height) when the URL is a resized version, otherwise the zoom cap is computed on the small image.",
+        "Crop mode: an element without a height of its own takes the crop's shape (aspect-ratio at zero specificity); with a height, the crop is fitted inside it (contain) or covers it (objectFit = cover)."
     ],
     "examples": []
 }

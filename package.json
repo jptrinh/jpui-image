@@ -4,12 +4,13 @@
         "type": "git",
         "url": "https://github.com/weweb-assets/ww-image"
     },
-    "version": "3.3.0",
+    "version": "3.4.0",
     "license": "MIT",
     "scripts": {
         "build": "weweb build",
         "serve": "weweb serve",
-        "create-config": "weweb config"
+        "create-config": "weweb config",
+        "test": "node --no-warnings test/crop.test.mjs"
     },
     "dependencies": {},
     "devDependencies": {
