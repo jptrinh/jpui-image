@@ -9,7 +9,7 @@
     >
         <div class="ww-image-basic-overlay"></div>
         <div v-if="isCropped" class="ww-image-basic-crop-sizer" aria-hidden="true"></div>
-        <img :src="src" :alt="alt" v-bind="imgAttributes" :style="cropImageStyle" @load="onImageLoad" />
+        <img ref="img" :src="src" :alt="alt" v-bind="imgAttributes" :style="cropImageStyle" @load="onImageLoad" @error="setLoading(false)" />
     </component>
 </template>
 
@@ -18,6 +18,7 @@ import { clampZoom, cropBox, fitBox, imageRectFor, maxZoomFor, parseRatio, toFra
 
 export default {
     props: {
+        uid: { type: String, required: true },
         content: { type: Object, required: true },
         wwElementState: { type: Object, required: true },
         /* wwEditor:start */
@@ -25,10 +26,20 @@ export default {
         /* wwEditor:end */
     },
     emits: ['update:content'],
-    setup() {
+    setup(props) {
         const { hasLink, tag: linkTag, properties } = wwLib.wwElement.useLink();
 
+        // True from a url change until the new image has loaded (or failed)
+        const { value: isLoading, setValue: setLoading } = wwLib.wwVariable.useComponentVariable({
+            uid: props.uid,
+            name: 'isLoading',
+            type: 'boolean',
+            defaultValue: false,
+        });
+
         return {
+            isLoading,
+            setLoading,
             hasLink,
             linkTag,
             properties,
@@ -156,8 +167,16 @@ export default {
         },
     },
     watch: {
-        src() {
-            this.naturalSize = null;
+        src: {
+            handler() {
+                this.naturalSize = null;
+                this.setLoading(!!this.src);
+                // Already in the cache: the load event may have fired before the watcher ran
+                this.$nextTick(() => {
+                    if (this.$refs.img?.complete && this.$refs.img.naturalWidth) this.setLoading(false);
+                });
+            },
+            immediate: true,
         },
         // Measure the element only in crop mode (a grid can hold hundreds of images)
         isCropped: {
@@ -174,6 +193,7 @@ export default {
     methods: {
         onImageLoad(event) {
             const img = event?.target;
+            this.setLoading(false);
             if (img?.naturalWidth && img?.naturalHeight) {
                 this.naturalSize = { width: img.naturalWidth, height: img.naturalHeight };
             }
