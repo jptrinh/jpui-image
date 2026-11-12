@@ -13,6 +13,9 @@ This is an element for Weweb, to display an image.
 -   `srcset` — array of `{ url, descriptor }` candidates for responsive images (e.g. `480w`, `2x`)
 -   `sizes` — array of `{ media, size }` conditions that tell the browser which srcset candidate to use
 -   Object fit is bindable
+-   **Progressive loading** (`placeholderUrl`): a small version of the same image (same shape, e.g. a cached
+    thumbnail) shows right away, in the same place and crop, and is removed once the main image has loaded (kept if
+    it fails). In crop mode without `width` / `height`, it only shows once the main image's size is known.
 -   **Crop mode** (`crop`): shows only a crop box of the image — `cropRatio` ("4:5" or a number, empty = the image's
     own ratio), `cropFocusX` / `cropFocusY` (0–1, the centre of the crop) and `cropZoom` (1 or more). The box is the
     largest box of the ratio divided by the zoom, as centred on the focus point as the image allows (the rule of

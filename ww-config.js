@@ -49,6 +49,23 @@ export default {
             },
             /* wwEditor:end */
         },
+        placeholderUrl: {
+            label: { en: 'Placeholder image' },
+            type: 'Text',
+            bindable: true,
+            defaultValue: '',
+            /* wwEditor:start */
+            bindingValidation: {
+                type: 'string',
+                tooltip:
+                    'URL of a small version of the same image (ideally already cached, e.g. a thumbnail), shown until the main image has loaded. Empty = none.',
+            },
+            propertyHelp: {
+                tooltip:
+                    'Progressive loading: shows right away, in the same place and crop, until the main image has loaded. Must have the same shape as the main image.',
+            },
+            /* wwEditor:end */
+        },
         objectFit: {
             label: {
                 en: 'Fit',

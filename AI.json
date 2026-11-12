@@ -16,6 +16,7 @@
             "Color/gradient overlay",
             "CSS filter effects",
             "Lazy and eager loading",
+            "Progressive loading: a placeholder image (e.g. a cached thumbnail) until the main image has loaded",
             "Multi-language alt text",
             "Responsive styling",
             "Bindable object-fit",
@@ -28,6 +29,12 @@
             "description": "Image source URL. Urls from the project images should be formatted as `designs/<projectId>/sections/<file_name>?_wwcv=<number>`. Respect the exact url returned by the project images search, even if it does not contain an http prefix.",
             "type": "string",
             "defaultValue": "https://cdn.weweb.app/public/images/no_image_selected.png"
+        },
+        {
+            "name": "placeholderUrl",
+            "description": "Progressive loading: URL of a small version of the same image (same shape, ideally already cached, e.g. a thumbnail), shown right away in the same place and crop until the main image has loaded, then removed. Kept if the main image fails. Empty = none. In crop mode without width / height, it only shows once the main image's size is known.",
+            "type": "string",
+            "defaultValue": ""
         },
         {
             "name": "objectFit",

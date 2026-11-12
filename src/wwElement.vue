@@ -9,7 +9,26 @@
     >
         <div class="ww-image-basic-overlay"></div>
         <div v-if="isCropped" class="ww-image-basic-crop-sizer" aria-hidden="true"></div>
-        <img ref="img" :src="src" :alt="alt" v-bind="imgAttributes" :style="cropImageStyle" @load="onImageLoad" @error="setLoading(false)" />
+        <img
+            v-if="showPlaceholder"
+            :key="placeholderSrc"
+            class="ww-image-basic-placeholder"
+            :src="placeholderSrc"
+            alt=""
+            aria-hidden="true"
+            :loading="imgAttributes.loading"
+            :style="cropImageStyle"
+        />
+        <img
+            ref="img"
+            :src="src"
+            :alt="alt"
+            v-bind="imgAttributes"
+            :class="{ '-pending': showPlaceholder }"
+            :style="cropImageStyle"
+            @load="onImageLoad"
+            @error="onImageError"
+        />
     </component>
 </template>
 
@@ -50,6 +69,8 @@ export default {
             // Crop mode: the element's size (measured) and the image's own size (read on load when not given)
             measured: null,
             naturalSize: null,
+            // The main image has loaded: the placeholder can go
+            isReady: false,
         };
     },
     computed: {
@@ -63,6 +84,14 @@ export default {
         },
         src() {
             return this.isWeWeb ? `${wwLib.wwUtils.getCdnPrefix()}${this.url}` : this.url;
+        },
+        placeholderSrc() {
+            const url = this.content?.placeholderUrl;
+            if (typeof url !== 'string' || !url) return '';
+            return url.startsWith('designs/') ? `${wwLib.wwUtils.getCdnPrefix()}${url}` : url;
+        },
+        showPlaceholder() {
+            return !!this.placeholderSrc && this.placeholderSrc !== this.src && !this.isReady;
         },
 
         isEditing() {
@@ -170,10 +199,14 @@ export default {
         src: {
             handler() {
                 this.naturalSize = null;
+                this.isReady = false;
                 this.setLoading(!!this.src);
                 // Already in the cache: the load event may have fired before the watcher ran
                 this.$nextTick(() => {
-                    if (this.$refs.img?.complete && this.$refs.img.naturalWidth) this.setLoading(false);
+                    if (this.$refs.img?.complete && this.$refs.img.naturalWidth) {
+                        this.setLoading(false);
+                        this.isReady = true;
+                    }
                 });
             },
             immediate: true,
@@ -194,9 +227,14 @@ export default {
         onImageLoad(event) {
             const img = event?.target;
             this.setLoading(false);
+            this.isReady = true;
             if (img?.naturalWidth && img?.naturalHeight) {
                 this.naturalSize = { width: img.naturalWidth, height: img.naturalHeight };
             }
+        },
+        // The placeholder stays: better a small image than a broken one
+        onImageError() {
+            this.setLoading(false);
         },
         startMeasuring() {
             const element = this.$el;
@@ -263,6 +301,16 @@ export default {
     height: 100%;
     aspect-ratio: var(--wwi-ar, var(--wwi-crop-ar, auto));
     pointer-events: none;
+}
+
+// Progressive loading: the placeholder sits under the main image, which stays invisible until it has loaded
+.ww-image-basic-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.ww-image-basic img.-pending {
+    opacity: 0;
 }
 
 // Crop mode: the image is placed in px around the crop box (exact ratio), the element clips the rest
